@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Podillia Avia — Virtual Airline</title>
+<meta name="description" content="Podillia Avia is a virtual airline for flight simulation pilots. Join our fleet, fly our routes, and be part of the community.">
+
+<!-- Google Fonts: Big Shoulders Display (headlines, signage feel),
+     Inter (body text), IBM Plex Mono (route codes / stats / labels) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+
+/* ============================================================
+   DESIGN TOKENS — edit colors/fonts here, they cascade everywhere
+   ============================================================ */
+:root{
+  --pda-yellow:      #E5A535;   /* gold accent — CTAs, highlights */
+  --pda-blue:         #112250;  /* primary navy — backgrounds, text on light */
+  --pda-light-blue:   #067EC1;  /* secondary accent — links, icons */
+
+  --pda-navy-deep:    #0A1830;  /* darker navy for footer / deepest sections */
+  --pda-mist:         #EEF2F7;  /* pale cool background for light sections */
+  --pda-ink:          #0B1526;  /* near-black text on light backgrounds */
+  --pda-paper:        #FFFFFF;
+
+  --font-display: 'Big Shoulders Display', sans-serif;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    'IBM Plex Mono', monospace;
+
+  --max-width: 1140px;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after{ box-sizing:border-box; margin:0; padding:0; }
+
+html{ scroll-behavior:smooth; }
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior:auto; }
+  *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+}
+
+body{
+  font-family: var(--font-body);
+  color: var(--pda-ink);
+  background: var(--pda-paper);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+
+img{ max-width:100%; display:block; }
+a{ color:inherit; text-decoration:none; }
+ul{ list-style:none; }
+
+.wrap{
+  max-width: var(--max-width);
+  margin:0 auto;
+  padding:0 24px;
+}
+
+section{ padding:96px 0; }
+
+h1,h2,h3{
+  font-family: var(--font-display);
+  font-weight:800;
+  letter-spacing:0.01em;
+  line-height:1.05;
+}
+
+.eyebrow{
+  font-family: var(--font-mono);
+  font-size:0.8rem;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color: var(--pda-light-blue);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:18px;
+}
+.eyebrow::before{
+  content:"";
+  width:28px;
+  height:2px;
+  background: var(--pda-yellow);
+  display:inline-block;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  font-family: var(--font-mono);
+  font-size:0.95rem;
+  font-weight:600;
+  letter-spacing:0.03em;
+  padding:14px 28px;
+  border-radius:4px;
+  border:2px solid transparent;
+  cursor:pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.btn:hover{ transform: translateY(-2px); }
+.btn:active{ transform: translateY(0); }
+
+.btn-primary{
+  background: var(--pda-yellow);
+  color: var(--pda-blue);
+}
+.btn-primary:hover{ background:#f0b755; }
+
+.btn-ghost{
+  background:transparent;
+  border-color: rgba(255,255,255,0.35);
+  color:#fff;
+}
+.btn-ghost:hover{ border-color:#fff; }
+
+.btn-ghost-dark{
+  background:transparent;
+  border-color: var(--pda-blue);
+  color: var(--pda-blue);
+}
+.btn-ghost-dark:hover{ background: var(--pda-blue); color:#fff; }
+
+/* ============================================================
+   LOGO PLACEHOLDER — swap this block for an <img> once you
+   have your logo file. Sizing is set so an image will slot in
+   cleanly at roughly 150x40px.
+   ============================================================ */
+.logo-placeholder{
+  width:150px;
+  height:40px;
+  border:1.5px dashed rgba(255,255,255,0.4);
+  border-radius:4px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family: var(--font-mono);
+  font-size:0.65rem;
+  letter-spacing:0.12em;
+  color:rgba(255,255,255,0.55);
+  flex-shrink:0;
+}
+.logo-placeholder.dark{
+  border-color: rgba(17,34,80,0.3);
+  color: rgba(17,34,80,0.55);
+}
+
+/* ============================================================
+   HEADER / NAV
+   ============================================================ */
+header{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background: var(--pda-blue);
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+header .wrap{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  height:76px;
+}
+.nav-links{
+  display:flex;
+  align-items:center;
+  gap:36px;
+}
+.nav-links a{
+  color:#fff;
+  font-size:0.92rem;
+  font-weight:500;
+  opacity:0.85;
+  transition: opacity 0.15s ease;
+}
+.nav-links a:hover{ opacity:1; }
+
+.nav-right{ display:flex; align-items:center; gap:24px; }
+
+/* mobile nav toggle — pure CSS, no JS needed */
+.nav-toggle{ display:none; }
+.nav-toggle-label{
+  display:none;
+  width:28px; height:22px;
+  position:relative;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.nav-toggle-label span,
+.nav-toggle-label span::before,
+.nav-toggle-label span::after{
+  content:"";
+  position:absolute;
+  left:0; right:0;
+  height:2px;
+  background:#fff;
+  transition: transform 0.2s ease;
+}
+.nav-toggle-label span{ top:10px; }
+.nav-toggle-label span::before{ top:-8px; }
+.nav-toggle-label span::after{ top:8px; }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{
+  background: linear-gradient(180deg, var(--pda-blue) 0%, #0d1c40 100%);
+  color:#fff;
+  padding:100px 0 0;
+  position:relative;
+  overflow:hidden;
+}
+.hero::after{
+  /* faint horizon line, runway-esque */
+  content:"";
+  position:absolute;
+  left:0; right:0; bottom:0;
+  height:1px;
+  background: linear-gradient(90deg, transparent, rgba(229,165,53,0.5), transparent);
+}
+.hero-inner{
+  max-width:720px;
+}
+.hero h1{
+  font-size: clamp(3rem, 8vw, 5.5rem);
+  text-transform:uppercase;
+  color:#fff;
+}
+.hero h1 span{ color: var(--pda-yellow); }
+.hero p.lede{
+  font-size:1.15rem;
+  color:rgba(255,255,255,0.75);
+  max-width:520px;
+  margin:22px 0 36px;
+}
+.hero-ctas{
+  display:flex;
+  gap:16px;
+  flex-wrap:wrap;
+  margin-bottom:70px;
+}
+
+/* --- Departure board strip: the page's signature element --- */
+.board{
+  background: rgba(255,255,255,0.04);
+  border-top:1px solid rgba(255,255,255,0.1);
+  border-bottom:1px solid rgba(255,255,255,0.1);
+}
+.board-row{
+  display:grid;
+  grid-template-columns: 90px 1fr 140px 130px;
+  gap:16px;
+  align-items:center;
+  padding:14px 0;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  font-family: var(--font-mono);
+  font-size:0.85rem;
+}
+.board-row:last-child{ border-bottom:none; }
+.board-row.head{
+  color: rgba(255,255,255,0.45);
+  font-size:0.7rem;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  padding:10px 0;
+}
+.board-code{ color: var(--pda-yellow); font-weight:600; }
+.board-dest{ color:#fff; }
+.board-region{ color:rgba(255,255,255,0.55); }
+.board-status{
+  display:flex; align-items:center; gap:8px;
+  color:#7fd88f;
+  font-size:0.78rem;
+}
+.board-status .dot{
+  width:7px; height:7px; border-radius:50%;
+  background:#7fd88f;
+  box-shadow:0 0 0 0 rgba(127,216,143,0.5);
+  animation: pulse 2.2s infinite;
+}
+@keyframes pulse{
+  0%{ box-shadow:0 0 0 0 rgba(127,216,143,0.45); }
+  70%{ box-shadow:0 0 0 8px rgba(127,216,143,0); }
+  100%{ box-shadow:0 0 0 0 rgba(127,216,143,0); }
+}
+
+/* ============================================================
+   ABOUT
+   ============================================================ */
+.about{
+  background: var(--pda-mist);
+}
+.about .wrap{
+  display:grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap:64px;
+  align-items:start;
+}
+.about h2{
+  font-size:2.6rem;
+  color: var(--pda-blue);
+  text-transform:uppercase;
+  margin-bottom:20px;
+}
+.about p{
+  color:#3c4759;
+  margin-bottom:16px;
+  max-width:520px;
+}
+.stat-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:1px;
+  background: rgba(17,34,80,0.12);
+  border:1px solid rgba(17,34,80,0.12);
+}
+.stat{
+  background: var(--pda-mist);
+  padding:28px 22px;
+}
+.stat .num{
+  font-family: var(--font-mono);
+  font-size:2.1rem;
+  font-weight:600;
+  color: var(--pda-light-blue);
+  line-height:1;
+}
+.stat .label{
+  font-size:0.78rem;
+  color:#5b6478;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  margin-top:8px;
+}
+
+/* ============================================================
+   FLEET
+   ============================================================ */
+.fleet-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:24px;
+  margin-top:48px;
+}
+.fleet-card{
+  border:1px solid #e2e6ee;
+  border-radius:6px;
+  padding:32px 26px;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.fleet-card:hover{ border-color: var(--pda-light-blue); transform: translateY(-3px); }
+.fleet-card .icon{
+  width:44px; height:44px;
+  color: var(--pda-light-blue);
+  margin-bottom:20px;
+}
+.fleet-card h3{
+  font-size:1.35rem;
+  color: var(--pda-blue);
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+.fleet-card .reg{
+  font-family: var(--font-mono);
+  font-size:0.8rem;
+  color: var(--pda-yellow);
+  background: rgba(229,165,53,0.1);
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:3px;
+  margin-bottom:14px;
+}
+.fleet-card p{ color:#5b6478; font-size:0.92rem; }
+
+/* ============================================================
+   FEATURES ("why fly with us")
+   ============================================================ */
+.features{ background: var(--pda-blue); color:#fff; }
+.features h2{
+  font-size:2.6rem;
+  text-transform:uppercase;
+  color:#fff;
+  max-width:600px;
+  margin-bottom:56px;
+}
+.feature-grid{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:1px;
+  background: rgba(255,255,255,0.1);
+}
+.feature{
+  background: var(--pda-blue);
+  padding:8px 28px 32px 0;
+}
+.feature .idx{
+  font-family: var(--font-mono);
+  font-size:0.8rem;
+  color: var(--pda-yellow);
+  display:block;
+  margin-bottom:60px;
+}
+.feature h3{
+  font-family: var(--font-body);
+  font-size:1.05rem;
+  font-weight:600;
+  margin-bottom:10px;
+}
+.feature p{
+  font-size:0.88rem;
+  color:rgba(255,255,255,0.6);
+}
+
+/* ============================================================
+   COMMUNITY / JOIN CTA
+   ============================================================ */
+.cta{
+  background: var(--pda-navy-deep);
+  color:#fff;
+  text-align:center;
+}
+.cta h2{
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  text-transform:uppercase;
+  margin-bottom:18px;
+}
+.cta h2 span{ color: var(--pda-yellow); }
+.cta p{
+  color:rgba(255,255,255,0.65);
+  max-width:480px;
+  margin:0 auto 36px;
+}
+.cta-btns{
+  display:flex;
+  gap:16px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer{
+  background: var(--pda-navy-deep);
+  border-top:1px solid rgba(255,255,255,0.08);
+  padding:40px 0;
+}
+footer .wrap{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:20px;
+}
+.footer-links{
+  display:flex;
+  gap:28px;
+}
+.footer-links a{
+  color:rgba(255,255,255,0.55);
+  font-size:0.85rem;
+  transition: color 0.15s ease;
+}
+.footer-links a:hover{ color:#fff; }
+.copyright{
+  font-family: var(--font-mono);
+  font-size:0.78rem;
+  color:rgba(255,255,255,0.35);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px){
+  .about .wrap{ grid-template-columns:1fr; gap:40px; }
+  .fleet-grid{ grid-template-columns:repeat(2, 1fr); }
+  .feature-grid{ grid-template-columns:repeat(2, 1fr); }
+  .board-row{ grid-template-columns: 70px 1fr 100px; }
+  .board-region{ display:none; }
+}
+
+@media (max-width: 640px){
+  section{ padding:64px 0; }
+  .nav-links{
+    position:absolute;
+    top:76px; left:0; right:0;
+    background: var(--pda-blue);
+    flex-direction:column;
+    align-items:flex-start;
+    padding:24px;
+    gap:20px;
+    display:none;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .nav-toggle:checked ~ .nav-links{ display:flex; }
+  .nav-toggle-label{ display:block; }
+  .nav-right .btn-ghost{ display:none; } /* keep header tidy on mobile, portal btn moves into menu */
+  .nav-links .mobile-only{ display:block; }
+
+  .fleet-grid{ grid-template-columns:1fr; }
+  .feature-grid{ grid-template-columns:1fr; }
+  .board-row{ grid-template-columns: 60px 1fr 90px; font-size:0.75rem; }
+  .hero-ctas{ flex-direction:column; align-items:stretch; }
+  .cta-btns{ flex-direction:column; align-items:stretch; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- Reusable plane icon, referenced via <use> below -->
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="icon-plane" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 2v20M12 2l6 6-6-2-6 2 6-6ZM6 15l-3 3v2l3-1 6-2 6 2 3 1v-2l-3-3-6 1.5L6 15Z"/>
+  </symbol>
+</svg>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<header>
+  <div class="wrap">
+    <!-- EDIT: replace with <img src="logo.png" alt="Podillia Avia" width="150"> -->
+    <div class="logo-placeholder">YOUR LOGO</div>
+
+    <input type="checkbox" id="nav-toggle" class="nav-toggle">
+
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#fleet">Fleet</a></li>
+      <li><a href="#routes">Routes</a></li>
+      <li><a href="#join">Join</a></li>
+      <li class="mobile-only"><a href="https://pcrew.podillia-va.com">Pilot Portal →</a></li>
+    </ul>
+
+    <div class="nav-right">
+      <a href="https://pcrew.podillia-va.com" class="btn btn-ghost">Pilot Portal</a>
+      <label for="nav-toggle" class="nav-toggle-label"><span></span></label>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section class="hero">
+  <div class="wrap hero-inner">
+    <p class="eyebrow">Virtual Airline</p>
+    <h1>Podillia<br><span>Avia</span></h1>
+    <p class="lede">
+      A virtual airline built for flight simmers who want realistic routes,
+      an active crew, and a home base that feels like a real operation —
+      not a checkbox exercise.
+    </p>
+    <div class="hero-ctas">
+      <a href="https://pcrew.podillia-va.com" class="btn btn-primary">Enter Pilot Portal</a>
+      <a href="#about" class="btn btn-ghost">Learn More</a>
+    </div>
+  </div>
+
+  <!-- Signature element: departure-board strip -->
+  <div class="board">
+    <div class="wrap">
+      <div class="board-row head">
+        <span>Code</span><span>Destination</span><span>Region</span><span>Status</span>
+      </div>
+      <!-- EDIT: swap in your real hub / route list -->
+      <div class="board-row">
+        <span class="board-code">UKBB</span>
+        <span class="board-dest">Kyiv Boryspil</span>
+        <span class="board-region">Kyiv Oblast</span>
+        <span class="board-status"><span class="dot"></span>Scheduled</span>
+      </div>
+      <div class="board-row">
+        <span class="board-code">UKLL</span>
+        <span class="board-dest">Lviv Danylo Halytskyi</span>
+        <span class="board-region">Lviv Oblast</span>
+        <span class="board-status"><span class="dot"></span>Scheduled</span>
+      </div>
+      <div class="board-row">
+        <span class="board-code">UKOO</span>
+        <span class="board-dest">Odesa</span>
+        <span class="board-region">Odesa Oblast</span>
+        <span class="board-status"><span class="dot"></span>Scheduled</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ABOUT
+     ============================================================ -->
+<section class="about" id="about">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">About Us</p>
+      <h2>Who We Are</h2>
+      <!-- EDIT: replace with your real founding story / mission -->
+      <p>
+        Podillia Avia started as a small group of flight sim pilots who wanted
+        something more structured than flying alone. Today it's a growing
+        crew flying scheduled routes, tracking real career progress, and
+        sharing the hobby with people who take it just seriously enough.
+      </p>
+      <p>
+        Whether you're new to virtual aviation or a veteran of the skies,
+        there's a seat in the cockpit for you.
+      </p>
+    </div>
+
+    <div class="stat-grid">
+      <!-- EDIT: these numbers are placeholders — replace before publishing -->
+      <div class="stat"><div class="num">24</div><div class="label">Active Pilots</div></div>
+      <div class="stat"><div class="num">6</div><div class="label">Fleet Types</div></div>
+      <div class="stat"><div class="num">18</div><div class="label">Routes</div></div>
+      <div class="stat"><div class="num">2026</div><div class="label">Founded</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FLEET
+     ============================================================ -->
+<section id="fleet">
+  <div class="wrap">
+    <p class="eyebrow">Our Aircraft</p>
+    <h2 style="font-size:2.6rem; color:var(--pda-blue); text-transform:uppercase;">The Fleet</h2>
+
+    <div class="fleet-grid">
+      <!-- EDIT: replace aircraft names/registrations with your real fleet -->
+      <div class="fleet-card">
+        <svg class="icon"><use href="#icon-plane"/></svg>
+        <div class="reg">UR-PDA</div>
+        <h3>Boeing 737-800</h3>
+        <p>Workhorse of our short and medium-haul domestic network.</p>
+      </div>
+      <div class="fleet-card">
+        <svg class="icon"><use href="#icon-plane"/></svg>
+        <div class="reg">UR-PDB</div>
+        <h3>Airbus A320neo</h3>
+        <p>Fuel-efficient narrowbody flying our busiest regional routes.</p>
+      </div>
+      <div class="fleet-card">
+        <svg class="icon"><use href="#icon-plane"/></svg>
+        <div class="reg">UR-PDC</div>
+        <h3>Embraer E195</h3>
+        <p>Regional jet connecting smaller airports to the main hub.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     WHY FLY WITH US
+     ============================================================ -->
+<section class="features">
+  <div class="wrap">
+    <p class="eyebrow">Why Join</p>
+    <h2>Built for pilots<br>who want it done right.</h2>
+
+    <div class="feature-grid">
+      <div class="feature">
+        <span class="idx">01</span>
+        <h3>Realistic Scheduling</h3>
+        <p>Routes and timetables modeled on real-world operations, not random flight numbers.</p>
+      </div>
+      <div class="feature">
+        <span class="idx">02</span>
+        <h3>SimBrief Integration</h3>
+        <p>Generate proper briefings and flight plans in a couple of clicks before every flight.</p>
+      </div>
+      <div class="feature">
+        <span class="idx">03</span>
+        <h3>PIREP Rewards</h3>
+        <p>Every logged flight counts toward your rank, pay, and career progress.</p>
+      </div>
+      <div class="feature">
+        <span class="idx">04</span>
+        <h3>Active Community</h3>
+        <p>A Discord that's actually alive — group flights, events, and people who fly back.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     JOIN CTA
+     ============================================================ -->
+<section class="cta" id="join">
+  <div class="wrap">
+    <h2>Ready to <span>take off?</span></h2>
+    <p>Create your pilot profile and file your first flight today. No experience required — just curiosity.</p>
+    <div class="cta-btns">
+      <a href="https://pcrew.podillia-va.com" class="btn btn-primary">Join the Crew</a>
+      <!-- EDIT: replace # with your real Discord invite link -->
+      <a href="#" class="btn btn-ghost">Join Discord</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer>
+  <div class="wrap">
+    <div class="logo-placeholder">YOUR LOGO</div>
+    <ul class="footer-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#fleet">Fleet</a></li>
+      <li><a href="#routes">Routes</a></li>
+      <li><a href="https://pcrew.podillia-va.com">Pilot Portal</a></li>
+    </ul>
+    <p class="copyright">© 2026 Podillia Avia. Virtual airline for flight simulation only.</p>
+  </div>
+</footer>
+
+</body>
+</html>
